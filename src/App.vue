@@ -1,32 +1,87 @@
 <template>
-  <div id="app">
-    <nav>
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </nav>
-    <router-view/>
+  <v-app>
+    <v-app-bar
+      app
+      color="white"
+    >
+      <v-toolbar-title>
+        <v-img src=./assets/Libr__1_-removebg-preview.png
+        max-height="100"
+        max-width="100">
+        </v-img>
+      </v-toolbar-title>
+      <v-spacer></v-spacer>
+      <template>
+        <div class="text-center">
+  <v-tabs color="black">
+    <v-tab
+      class="ma-2" 
+      to="/"
+      >
+    <v-icon>
+        mdi-home
+      </v-icon>
+      Início
+    </v-tab>
+
+    <v-tab
+      class="ma-2"
+      to="/user"
+    >
+    <v-icon left>
+        mdi-account-plus
+      </v-icon>
+      Usuários
+    </v-tab>
+
+    <v-tab
+      class="ma-2"
+      to="/publisher"
+    >
+    <v-icon left>
+        mdi-bookshelf
+      </v-icon>
+      Editoras
+    </v-tab>
+
+    <v-tab
+      class="ma-2"
+      to="/book"
+    >
+    <v-icon left>
+        mdi-book-plus
+      </v-icon>
+      Livros
+    </v-tab>
+    
+    <v-tab
+      class="ma-2"
+      to="/rent"
+    >
+    <v-icon left>
+        mdi-book-account
+      </v-icon>
+      Aluguéis
+    </v-tab>
+  </v-tabs> 
   </div>
 </template>
+      <v-spacer></v-spacer>
+    </v-app-bar>
+    <v-main>
+      <router-view></router-view>
+    </v-main>
+  </v-app>
+</template>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script>
 
-nav {
-  padding: 30px;
+export default {
+  name: 'App',
 
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
-}
-</style>
+  data: () => ({
+    //
+  }),
+};
+</script>
+        
