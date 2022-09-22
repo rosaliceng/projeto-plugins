@@ -1,229 +1,224 @@
 <template>
-    <v-app>
-    <v-main class="pink lighten-2">
-      <v-container>
-        <v-row>
-          <v-col>
-            <v-toolbar>
-            <v-toolbar-title>Livros</v-toolbar-title>
-                    <v-divider class="mx-4" inset vertical></v-divider>
-                    <v-dialog v-model="dialog" max-width="500px">
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-btn rounded color="black" dark class="" v-bind="attrs" v-on="on">
-                          Novo
-                          <v-icon right>
-                            mdi-plus
-                          </v-icon>
-                        </v-btn>
-                      </template>
-                      <v-card>
-                        <v-card-title>
-                          <span class="text-h5"><h5>Cadastrar livro</h5></span>
-                        </v-card-title>
 
-                        <v-card-text>
-                          <v-container>
-                            <v-text-field v-model="editedItem.name" label="Nome"></v-text-field>
-                            <v-text-field v-model="editedItem.city" label="Cidade"></v-text-field>
-                            <v-text-field v-model="editedItem.address" label="Endereço"></v-text-field>
-                            <v-text-field v-model="editedItem.email" label="Email"></v-text-field>
-                          </v-container>
-                        </v-card-text>
-                        <v-card-actions>
-                          <v-spacer></v-spacer>
-                          <v-btn color="red darken-1" text @click="close">
-                            Cancel
+  <div id="app">
+
+    <v-app id="inspire">
+      <v-main class="pink accent-1">
+        <v-container>
+          <v-row>
+            <v-col>
+              <v-sheet rounded="xl">
+                <v-data-table class="rounded-xl elevation-7" :headers="headers" :items="desserts" sort-by="calories">
+                  <template v-slot:top>
+                    <v-toolbar class="rounded-xl rounded-b-0" flat>
+                      <v-toolbar-title>Livros</v-toolbar-title>
+                      <v-divider class="mx-4" inset vertical></v-divider>
+
+                      <v-dialog v-model="dialog" max-width="500px">
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-btn rounded color="black" dark v-bind="attrs" v-on="on">
+                            Novo
+                            <v-icon right>
+                              mdi-plus
+                            </v-icon>
                           </v-btn>
-                          <v-btn color="blue darken-1" text @click="save">
-                            Save
-                          </v-btn>
-                        </v-card-actions>
-                      </v-card>
-                    </v-dialog>
-                    <v-spacer></v-spacer>
-                    <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details>
-                    </v-text-field>
-                  </v-toolbar>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-main>
-  </v-app>
+                        </template>
+                        <v-card>
+                          <v-card-title>
+                            <span class="text-h5">{{ formTitle }}</span>
+                          </v-card-title>
+
+                          <v-card-text>
+                            <v-container>
+                              <v-col>
+                                <v-text-field v-model="editedItem.name" label="Nome"></v-text-field>
+                              </v-col>
+                              <v-col>
+                                <v-text-field v-model="editedItem.author" label="Autor"></v-text-field>
+                              </v-col>
+                              <v-col>
+                                <v-text-field v-model="editedItem.publisher" label="Editora"></v-text-field>
+                              </v-col>
+                              <v-col>
+                              <v-text-field v-model="editedItem.launch" label="Lançamento"></v-text-field>
+                            </v-col>
+                            </v-container>
+                          </v-card-text>
+
+                          <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn rounded color="primary" text @click="close">
+                              Cancel
+                            </v-btn>
+                            <v-btn color="blue darken-1" text @click="save">
+                              Save
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </v-dialog>
+                      <v-dialog v-model="dialogDelete" max-width="500px">
+                        <v-card>
+                          <v-card-title class="text-h7"><v-icon>mdi-alertcircle</v-icon>Você tem certeza que deseja deletar?</v-card-title>
+                          <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn color="red darken-1" text @click="closeDelete">Cancelar</v-btn>
+                            <v-btn color="blue darken-1" text @click="deleteItemConfirm">Sim,quero</v-btn>
+                            <v-spacer></v-spacer>
+                          </v-card-actions>
+                        </v-card>
+                      </v-dialog>
+                    </v-toolbar>
+                  </template>
+
+                  <template v-slot:[`item.actions`]="{ item }">
+
+                    <v-icon size="20" class="mr-5" color="blue" @click="editItem(item)">
+                      mdi-pencil
+                    </v-icon>
+                    <v-icon size="20" color="red" @click="deleteItem(item)">
+                      mdi-delete
+                    </v-icon>
+                  </template>
+
+                </v-data-table>
+              </v-sheet>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-main>
+    </v-app>
+  </div>
 </template>
+<script>
 
-<script> 
-    export default {
-        name: 'BookView',
-        data: () => ({
-      dialog: false,
-      dialogDelete: false,
-      headers: [
+
+export default ({
+
+  data: () => ({
+    dialog: false,
+    dialogDelete: false,
+    headers: [
+      {
+        text: 'Id',
+        align: 'start',
+        sortable: false,
+        value: 'id',
+      },
+      { text: 'Nome', value: 'name' },
+      { text: 'Autor', value: 'author' },
+      { text: 'Editora', value: 'publisher' },
+      { text: 'Lançamento', value: 'launch' },
+      { text: 'Quantidade', value: 'quantity' },
+      { text: 'Actions', value: 'actions', sortable: false },
+    ],
+    desserts: [],
+    editedIndex: -1,
+    editedItem: {
+      name: '',
+      city: '',
+      addres: '',
+      email: '',
+
+    },
+    defaultItem: {
+      name: '',
+      city: '',
+      addres: '',
+      email: '',
+
+    },
+  }),
+
+  computed: {
+    formTitle() {
+      return this.editedIndex === -1 ? 'Novo usuário' : 'Editar usuário'
+    },
+  },
+
+  watch: {
+    dialog(val) {
+      val || this.close()
+    },
+    dialogDelete(val) {
+      val || this.closeDelete()
+    },
+  },
+
+  created() {
+    this.initialize()
+  },
+
+  methods: {
+    initialize() {
+      this.desserts = [
         {
-          text: 'Dessert (100g serving)',
-          align: 'start',
-          sortable: false,
-          value: 'name',
+          name: '',
+          city: '',
+          address: '',
+          email: '',
+
         },
-        { text: 'Calories', value: 'calories' },
-        { text: 'Fat (g)', value: 'fat' },
-        { text: 'Carbs (g)', value: 'carbs' },
-        { text: 'Protein (g)', value: 'protein' },
-        { text: 'Actions', value: 'actions', sortable: false },
-      ],
-      desserts: [],
-      editedIndex: -1,
-      editedItem: {
-        name: '',
-        calories: 0,
-        fat: 0,
-        carbs: 0,
-        protein: 0,
-      },
-      defaultItem: {
-        name: '',
-        calories: 0,
-        fat: 0,
-        carbs: 0,
-        protein: 0,
-      },
-    }),
-
-    computed: {
-      formTitle () {
-        return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
-      },
+      ]
     },
 
-    watch: {
-      dialog (val) {
-        val || this.close()
-      },
-      dialogDelete (val) {
-        val || this.closeDelete()
-      },
+    editItem(item) {
+      this.editedIndex = this.desserts.indexOf(item)
+      this.editedItem = Object.assign({}, item)
+      this.dialog = true
     },
 
-    created () {
-      this.initialize()
+    deleteItem(item) {
+      this.editedIndex = this.desserts.indexOf(item)
+      this.editedItem = Object.assign({}, item)
+      this.dialogDelete = true
     },
 
-    methods: {
-      initialize () {
-        this.desserts = [
-          {
-            name: 'Frozen Yogurt',
-            calories: 159,
-            fat: 6.0,
-            carbs: 24,
-            protein: 4.0,
-          },
-          {
-            name: 'Ice cream sandwich',
-            calories: 237,
-            fat: 9.0,
-            carbs: 37,
-            protein: 4.3,
-          },
-          {
-            name: 'Eclair',
-            calories: 262,
-            fat: 16.0,
-            carbs: 23,
-            protein: 6.0,
-          },
-          {
-            name: 'Cupcake',
-            calories: 305,
-            fat: 3.7,
-            carbs: 67,
-            protein: 4.3,
-          },
-          {
-            name: 'Gingerbread',
-            calories: 356,
-            fat: 16.0,
-            carbs: 49,
-            protein: 3.9,
-          },
-          {
-            name: 'Jelly bean',
-            calories: 375,
-            fat: 0.0,
-            carbs: 94,
-            protein: 0.0,
-          },
-          {
-            name: 'Lollipop',
-            calories: 392,
-            fat: 0.2,
-            carbs: 98,
-            protein: 0,
-          },
-          {
-            name: 'Honeycomb',
-            calories: 408,
-            fat: 3.2,
-            carbs: 87,
-            protein: 6.5,
-          },
-          {
-            name: 'Donut',
-            calories: 452,
-            fat: 25.0,
-            carbs: 51,
-            protein: 4.9,
-          },
-          {
-            name: 'KitKat',
-            calories: 518,
-            fat: 26.0,
-            carbs: 65,
-            protein: 7,
-          },
-        ]
-      },
+    deleteItemConfirm() {
+      this.desserts.splice(this.editedIndex, 1)
+      this.closeDelete()
+    },
 
-      editItem (item) {
-        this.editedIndex = this.desserts.indexOf(item)
-        this.editedItem = Object.assign({}, item)
-        this.dialog = true
-      },
+    close() {
+      this.dialog = false
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem)
+        this.editedIndex = -1
+      })
+    },
 
-      deleteItem (item) {
-        this.editedIndex = this.desserts.indexOf(item)
-        this.editedItem = Object.assign({}, item)
-        this.dialogDelete = true
-      },
+    closeDelete() {
+      this.dialogDelete = false
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem)
+        this.editedIndex = -1
+      })
+    },
 
-      deleteItemConfirm () {
-        this.desserts.splice(this.editedIndex, 1)
-        this.closeDelete()
-      },
-
-      close () {
-        this.dialog = false
-        this.$nextTick(() => {
-          this.editedItem = Object.assign({}, this.defaultItem)
-          this.editedIndex = -1
+    save(data) {
+      if (this.editedIndex > -1) {
+        Object.assign(this.desserts[this.editedIndex], this.editedItem)
+      } else {
+        this.desserts.push(this.editedItem)
+      }
+      this.close()
+    },
+  },
+  async listUsers() {
+      await UserDataService.getAll()
+        .then((response) => {
+          this.users = response.data;
+          console.log(response.data);
         })
-      },
-
-      closeDelete () {
-        this.dialogDelete = false
-        this.$nextTick(() => {
-          this.editedItem = Object.assign({}, this.defaultItem)
-          this.editedIndex = -1
-        })
-      },
-
-      save () {
-        if (this.editedIndex > -1) {
-          Object.assign(this.desserts[this.editedIndex], this.editedItem)
-        } else {
-          this.desserts.push(this.editedItem)
-        }
-        this.close()
-      },
+        .catch((e) => {
+          console.log(e);
+        });
     },
+mounted() {
+    this.listUsers();
   }
+})
 </script>
+  
+<style>
+
+</style>
