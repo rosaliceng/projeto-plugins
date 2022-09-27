@@ -1,25 +1,25 @@
 import http from "./config.js";
 
-class BookDataService{
-    getAll(){
+class BookDataService {
+    getAll() {
         return http.get("/book");
     }
 
 
-get(id) {
-    return http.get(`/book/${id}`);
-}
+    get(id) {
+        return http.get(`/book/${id}`);
+    }
 
-create(data) {
-    return http.post("/book",data);
-}
+    create(data) {
+        return http.post("/book", data);
+    }
 
-update(id,data) {
-    return http.put(`/book/${id}`,data);
-}
+    update(id, data) {
+        return http.put(`/book/${id}`, data);
+    }
 
-delete(id){
-    return http.delete(`/book/${id}`);
+    delete(id) {
+        return http.delete(`/book/${id}`);
     }
 }
 

@@ -8,12 +8,11 @@
           <v-row>
             <v-col>
               <v-sheet rounded="xl">
-                <v-data-table class="rounded-xl elevation-7" :headers="headers" :items="desserts" sort-by="calories">
+                <v-data-table class="rounded-xl elevation-7" :headers="headers" :items="publishers">
                   <template v-slot:top>
                     <v-toolbar class="rounded-xl rounded-b-0" flat>
                       <v-toolbar-title>Editoras</v-toolbar-title>
                       <v-divider class="mx-4" inset vertical></v-divider>
-
                       <v-dialog v-model="dialog" max-width="500px">
                         <template v-slot:activator="{ on, attrs }">
                           <v-btn rounded color="black" dark v-bind="attrs" v-on="on">
@@ -50,6 +49,9 @@
                           </v-card-actions>
                         </v-card>
                       </v-dialog>
+                      <v-spacer></v-spacer>
+                      <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details>
+                      </v-text-field>
                       <v-dialog v-model="dialogDelete" max-width="500px">
                         <v-card>
                           <v-card-title class="text-h7"><v-icon>mdi-alertcircle</v-icon>Você tem certeza que deseja deletar?</v-card-title>
@@ -86,6 +88,8 @@
 <script>
 
 
+import PublisherDataService from "../services/PublisherDataService"
+
 export default ({
 
   data: () => ({
@@ -102,7 +106,9 @@ export default ({
       { text: 'Cidade', value: 'city' },
       { text: 'Actions', value: 'actions', sortable: false },
     ],
-    desserts: [],
+    
+    publishers: [],
+    search: '',
     editedIndex: -1,
     editedItem: {
       name: '',
@@ -116,11 +122,11 @@ export default ({
       
 
     },
-  }),
 
+  }),
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? 'Novo usuário' : 'Editar usuário'
+      return this.editedIndex === -1 ? 'Nova editora' : 'Editar editora'
     },
   },
 
@@ -139,7 +145,7 @@ export default ({
 
   methods: {
     initialize() {
-      this.desserts = [
+      this.publisher = [
         {
           name: '',
           city: '',
@@ -148,20 +154,30 @@ export default ({
       ]
     },
 
+    async listPublisher() {
+      await PublisherDataService.getAll()
+        .then((response) => {
+          this.publishers = response.data;
+          console.log(response.data);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
     editItem(item) {
-      this.editedIndex = this.desserts.indexOf(item)
+      this.editedIndex = item.id
       this.editedItem = Object.assign({}, item)
       this.dialog = true
     },
 
     deleteItem(item) {
-      this.editedIndex = this.desserts.indexOf(item)
+      this.editedIndex = item.id
       this.editedItem = Object.assign({}, item)
       this.dialogDelete = true
     },
 
     deleteItemConfirm() {
-      this.desserts.splice(this.editedIndex, 1)
+      this.deletePublisher()
       this.closeDelete()
     },
 
@@ -181,27 +197,39 @@ export default ({
       })
     },
 
-    save(data) {
+    save() {
       if (this.editedIndex > -1) {
-        Object.assign(this.desserts[this.editedIndex], this.editedItem)
+        this.atualizationPublisher()
       } else {
-        this.desserts.push(this.editedItem)
+        this.createPublisher()
       }
       this.close()
     },
+
+    async createUser(){
+    await PublisherDataService.create(this.editedItem).then(() => this.listPublisher())
+    .catch((e) => {
+      console.log(e)
+    })
   },
-  async listUsers() {
-      await UserDataService.getAll()
-        .then((response) => {
-          this.users = response.data;
-          console.log(response.data);
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-    },
+
+  async atualizationPublisher(){
+    await PublisherDataService.update(this.editedIndex, this.editedItem).then(() => this.listPublisher())
+    .catch((e) => {
+      console.log(e)
+    })
+  },
+
+  async deletePublisher(){
+    await PublisherDataService.delete(this.editedIndex).then(() => this.listPublisher())
+    .catch((e) => {
+      console.log(e)
+    })
+  }
+  },
+ 
 mounted() {
-    this.listUsers();
+    this.listPublisher();
   }
 })
 </script>

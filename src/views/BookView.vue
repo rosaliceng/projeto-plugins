@@ -8,7 +8,7 @@
           <v-row>
             <v-col>
               <v-sheet rounded="xl">
-                <v-data-table class="rounded-xl elevation-7" :headers="headers" :items="desserts" sort-by="calories">
+                <v-data-table class="rounded-xl elevation-7" :headers="headers" :items="books">
                   <template v-slot:top>
                     <v-toolbar class="rounded-xl rounded-b-0" flat>
                       <v-toolbar-title>Livros</v-toolbar-title>
@@ -40,8 +40,11 @@
                                 <v-text-field v-model="editedItem.publisher" label="Editora"></v-text-field>
                               </v-col>
                               <v-col>
-                              <v-text-field v-model="editedItem.launch" label="Lançamento"></v-text-field>
-                            </v-col>
+                                <v-text-field v-model="editedItem.quantity" label="Quantidade"></v-text-field>
+                              </v-col>
+                              <v-col>
+                                <v-text-field v-model="editedItem.launch" label="Lançamento"></v-text-field>
+                              </v-col>
                             </v-container>
                           </v-card-text>
 
@@ -56,9 +59,14 @@
                           </v-card-actions>
                         </v-card>
                       </v-dialog>
+                      <v-spacer></v-spacer>
+                      <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details>
+                      </v-text-field>
                       <v-dialog v-model="dialogDelete" max-width="500px">
                         <v-card>
-                          <v-card-title class="text-h7"><v-icon>mdi-alertcircle</v-icon>Você tem certeza que deseja deletar?</v-card-title>
+                          <v-card-title class="text-h7">
+                            <v-icon>mdi-alertcircle</v-icon>Você tem certeza que deseja deletar?
+                          </v-card-title>
                           <v-card-actions>
                             <v-spacer></v-spacer>
                             <v-btn color="red darken-1" text @click="closeDelete">Cancelar</v-btn>
@@ -69,7 +77,11 @@
                       </v-dialog>
                     </v-toolbar>
                   </template>
-
+                  <template v-slot:[`item.quantity`]="{ item }">
+                        <v-chip class="elevation-3" :color="getColor(item.quantity)" dark>
+                          {{ item.quantity }}
+                        </v-chip>
+                      </template>
                   <template v-slot:[`item.actions`]="{ item }">
 
                     <v-icon size="20" class="mr-5" color="blue" @click="editItem(item)">
@@ -90,6 +102,7 @@
   </div>
 </template>
 <script>
+import BookDataService from "../services/BookDataService";
 
 
 export default ({
@@ -101,37 +114,40 @@ export default ({
       {
         text: 'Id',
         align: 'start',
-        sortable: false,
         value: 'id',
       },
-      { text: 'Nome', value: 'name' },
-      { text: 'Autor', value: 'author' },
-      { text: 'Editora', value: 'publisher' },
-      { text: 'Lançamento', value: 'launch' },
-      { text: 'Quantidade', value: 'quantity' },
-      { text: 'Actions', value: 'actions', sortable: false },
+      { text: 'Nome', value: 'name', },
+      { text: 'Autor', value: 'author', },
+      { text: 'Editora', value: 'publisher.name', },
+      { text: 'Data de lançamento', value: 'launch', },
+      { text: 'Quantidade', value: 'quantity', },
+      { text: 'Ações', align: 'center', value: 'actions', sortable: false }
     ],
-    desserts: [],
+    books: [],
+    publishers: [],
+    search:'',
     editedIndex: -1,
     editedItem: {
       name: '',
-      city: '',
-      addres: '',
-      email: '',
-
+      author: '',
+      publisherId: '',
+      publisher: '',
+      launch: '',
+      quantity: '',
     },
     defaultItem: {
       name: '',
-      city: '',
-      addres: '',
-      email: '',
-
+      author: '',
+      publisherId: '',
+      publisher: '',
+      launch: '',
+      quantity: '',
     },
   }),
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? 'Novo usuário' : 'Editar usuário'
+      return this.editedIndex === -1 ? 'Novo livro' : 'Editar livro'
     },
   },
 
@@ -150,7 +166,7 @@ export default ({
 
   methods: {
     initialize() {
-      this.desserts = [
+      this.book = [
         {
           name: '',
           city: '',
@@ -160,21 +176,36 @@ export default ({
         },
       ]
     },
+    getColor(quantity) {
+      if (quantity < 10) return 'red'
+      else if (quantity < 50) return 'orange'
+      else return 'green'
+    },
+    async listBook() {
+      await BookDataService.getAll()
+        .then((response) => {
+          this.books = response.data;
+          console.log(response.data);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
 
     editItem(item) {
-      this.editedIndex = this.desserts.indexOf(item)
+      this.editedIndex = this.book.indexOf(item)
       this.editedItem = Object.assign({}, item)
       this.dialog = true
     },
 
     deleteItem(item) {
-      this.editedIndex = this.desserts.indexOf(item)
+      this.editedIndex = this.book.indexOf(item)
       this.editedItem = Object.assign({}, item)
       this.dialogDelete = true
     },
 
     deleteItemConfirm() {
-      this.desserts.splice(this.editedIndex, 1)
+      this.book.splice(this.editedIndex, 1)
       this.closeDelete()
     },
 
@@ -196,25 +227,37 @@ export default ({
 
     save(data) {
       if (this.editedIndex > -1) {
-        Object.assign(this.desserts[this.editedIndex], this.editedItem)
+        this.atualizationBook()
       } else {
-        this.desserts.push(this.editedItem)
+        this.createBook()
       }
       this.close()
     },
-  },
-  async listUsers() {
-      await UserDataService.getAll()
-        .then((response) => {
-          this.users = response.data;
-          console.log(response.data);
-        })
+
+    async createBook() {
+      await BookDataService.create(this.editedItem).then(() => this.listBook())
         .catch((e) => {
-          console.log(e);
-        });
+          console.log(e)
+        })
     },
-mounted() {
-    this.listUsers();
+
+    async atualizationBook() {
+      await BookDataService.update(this.editedIndex, this.editedItem).then(() => this.listBook())
+        .catch((e) => {
+          console.log(e)
+        })
+    },
+
+    async deleteBook() {
+      await BookDataService.delete(this.editedIndex).then(() => this.listBook())
+        .catch((e) => {
+          console.log(e)
+        })
+    }
+  },
+
+  mounted() {
+    this.listBook();
   }
 })
 </script>

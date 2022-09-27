@@ -8,10 +8,10 @@
       <v-row>
         <v-col>
           <v-sheet rounded="xl">
-            <v-data-table class="rounded-xl elevation-1" :headers="headers" :items="desserts" sort-by="calories">
+            <v-data-table class="rounded-xl elevation-1" :headers="headers" :items="rents">
               <template v-slot:top>
                 <v-toolbar class="rounded-xl rounded-b-0" flat>
-                  <v-toolbar-title>Usuários</v-toolbar-title>
+                  <v-toolbar-title>Aluguéis</v-toolbar-title>
                   <v-divider class="mx-4" inset vertical></v-divider>
 
                   <v-dialog v-model="dialog" max-width="500px">
@@ -91,6 +91,7 @@
 </template>
 <script>
 
+import RentDataService from "../services/RentDataService"
 
 export default ({
 
@@ -104,13 +105,16 @@ headers: [
     sortable: false,
     value: 'id',
   },
-  { text: 'Nome', value: 'name' },
-  { text: 'Cidade', value: 'city' },
-  { text: 'Endereço', value: 'address' },
-  { text: 'Email', value: 'email' },
+  { text: 'Livro alugado', value: 'book.name' },
+  { text: 'Usuário', value: 'user.name' },
+  { text: 'Data do aluguel', value: 'address' },
+  { text: 'Previsão de devolução', value: 'email' },
+  { text: 'Data de devolução', value: 'email' },
   { text: 'Actions', value: 'actions', sortable: false },
 ],
-desserts: [],
+rents: [],
+users: [],
+books: [],
 editedIndex: -1,
 editedItem: {
   name: '',
@@ -148,10 +152,21 @@ this.initialize()
 },
 
 methods: {
-    async listUsers() {
-      await UserDataService.getAll()
+    initialize() {
+      this.rent= [
+        {
+          name: '',
+          city: '',
+          address: '',
+          email: '',
+
+        },
+      ]
+    },
+    async listRent() {
+      await RentDataService.getAll()
         .then((response) => {
-          this.users = response.data;
+          this.rents = response.data;
           console.log(response.data);
         })
         .catch((e) => {
@@ -160,19 +175,19 @@ methods: {
     },
 
     editItem(item) {
-      this.editedIndex = item.id
+      this.editedIndex = this.rent.indexOf(item)
       this.editedItem = Object.assign({}, item)
       this.dialog = true
     },
 
     deleteItem(item) {
-      this.editedIndex = item.id
+      this.editedIndex = this.rent.indexOf(item)
       this.editedItem = Object.assign({}, item)
       this.dialogDelete = true
     },
 
     deleteItemConfirm() {
-      this.UserDelete()
+      this.rent.splice(this.editedIndex, 1)
       this.closeDelete()
     },
 
@@ -192,37 +207,19 @@ methods: {
       })
     },
 
-    save() {
+    save(data) {
       if (this.editedIndex > -1) {
-        this.UserUpdate()
+        Object.assign(this.rent[this.editedIndex], this.editedItem)
       } else {
-        this.UserPost()
+        this.rent.push(this.editedItem)
       }
       this.close()
     },
-
-    async UserPost() {
-      await UserDataService.create(this.editedItem).then(() => this.listUsers())
-        .catch((e) => {
-          console.log(e)
-        });
-    },
-
-    async UserUpdate() {
-      await UserDataService.update(this.editedIndex, this.editedItem).then(() => this.listUsers())
-        .catch((e) => {
-          console.log(e)
-        });
-    },
-
-    async UserDelete() {
-      await UserDataService.delete(this.editedIndex).then(() => this.listUsers())
-        .catch((e) => {
-          console.log(e)
-        })
-    }
-
   },
+ 
+mounted() {
+    this.listRent();
+  }
 })
 </script>
 

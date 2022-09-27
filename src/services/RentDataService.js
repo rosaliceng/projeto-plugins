@@ -1,25 +1,25 @@
 import http from "./config.js";
 
-class RentDataService{
-    getAll(){
-        return http.get("/rent");
+class RentDataService {
+    getAll() {
+        return http.get("/Rent");
     }
 
 
-get(id) {
-    return http.get(`/rent/${id}`);
-}
+    get(id) {
+        return http.get(`/Rent/${id}`);
+    }
 
-create(data) {
-    return http.post("/rent",data);
-}
+    create(data) {
+        return http.post("/Rent", data);
+    }
 
-update(id,data) {
-    return http.put(`/rent/${id}`,data);
-}
+    update(id, data) {
+        return http.put(`/Rent/${id}`, data);
+    }
 
-delete(id){
-    return http.delete(`/rent/${id}`);
+    delete(id) {
+        return http.delete(`/Rent/${id}`);
     }
 }
 

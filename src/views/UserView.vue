@@ -8,13 +8,12 @@
           <v-row>
             <v-col>
               <v-sheet rounded="xl">
-                <v-data-table class="rounded-xl elevation-7" :headers="headers" :items="desserts" sort-by="calories">
+                <v-data-table class="rounded-xl elevation-7" :headers="headers" :search="search" :items="users">
                   <template v-slot:top>
                     <v-toolbar class="rounded-xl rounded-b-0" flat>
                       <v-toolbar-title>Usuários</v-toolbar-title>
                       <v-divider class="mx-4" inset vertical></v-divider>
-
-                      <v-dialog v-model="dialog" max-width="500px">
+                      <v-dialog persistent v-model="dialog" max-width="500px">
                         <template v-slot:activator="{ on, attrs }">
                           <v-btn rounded color="black" dark v-bind="attrs" v-on="on">
                             Novo
@@ -22,9 +21,13 @@
                               mdi-plus
                             </v-icon>
                           </v-btn>
+
                         </template>
+
                         <v-card>
+
                           <v-card-title>
+
                             <span class="text-h5">{{ formTitle }}</span>
                           </v-card-title>
 
@@ -40,14 +43,14 @@
                                 <v-text-field v-model="editedItem.address" label="Endereço"></v-text-field>
                               </v-col>
                               <v-col>
-                              <v-text-field v-model="editedItem.email" label="Email"></v-text-field>
-                            </v-col>
+                                <v-text-field v-model="editedItem.email" label="Email"></v-text-field>
+                              </v-col>
                             </v-container>
                           </v-card-text>
 
                           <v-card-actions>
                             <v-spacer></v-spacer>
-                            <v-btn rounded color="primary" text @click="close">
+                            <v-btn color="red darken-1" text @click="close">
                               Cancel
                             </v-btn>
                             <v-btn color="blue darken-1" text @click="save">
@@ -56,9 +59,14 @@
                           </v-card-actions>
                         </v-card>
                       </v-dialog>
+                      <v-spacer></v-spacer>
+                      <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details>
+                      </v-text-field>
                       <v-dialog v-model="dialogDelete" max-width="500px">
                         <v-card>
-                          <v-card-title class="text-h7"><v-icon>mdi-alertcircle</v-icon>Você tem certeza que deseja deletar?</v-card-title>
+                          <v-card-title class="text-h7">
+                            <v-icon>mdi-alertcircle</v-icon>Você tem certeza que deseja deletar?
+                          </v-card-title>
                           <v-card-actions>
                             <v-spacer></v-spacer>
                             <v-btn color="red darken-1" text @click="closeDelete">Cancelar</v-btn>
@@ -68,6 +76,7 @@
                         </v-card>
                       </v-dialog>
                     </v-toolbar>
+
                   </template>
 
                   <template v-slot:[`item.actions`]="{ item }">
@@ -110,7 +119,8 @@ export default ({
       { text: 'Email', value: 'email' },
       { text: 'Actions', value: 'actions', sortable: false },
     ],
-    desserts: [],
+    users: [],
+    search: '',
     editedIndex: -1,
     editedItem: {
       name: '',
@@ -149,7 +159,7 @@ export default ({
 
   methods: {
     initialize() {
-      this.desserts = [
+      this.user = [
         {
           name: '',
           city: '',
@@ -159,21 +169,31 @@ export default ({
         },
       ]
     },
+    async listUser() {
+      await UserDataService.getAll()
+        .then((response) => {
+          this.users = response.data;
+          console.log(response.data);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
 
     editItem(item) {
-      this.editedIndex = this.desserts.indexOf(item)
+      this.editedIndex = item.id
       this.editedItem = Object.assign({}, item)
       this.dialog = true
     },
 
     deleteItem(item) {
-      this.editedIndex = this.desserts.indexOf(item)
+      this.editedIndex = item.id
       this.editedItem = Object.assign({}, item)
       this.dialogDelete = true
     },
 
     deleteItemConfirm() {
-      this.desserts.splice(this.editedIndex, 1)
+      this.deleteUser()
       this.closeDelete()
     },
 
@@ -193,27 +213,39 @@ export default ({
       })
     },
 
-    save(data) {
+    save() {
       if (this.editedIndex > -1) {
-        Object.assign(this.desserts[this.editedIndex], this.editedItem)
+        this.atualizationUser()
       } else {
-        this.desserts.push(this.editedItem)
+        this.createUser()
       }
       this.close()
     },
-  },
-  async listUsers() {
-      await UserDataService.getAll()
-        .then((response) => {
-          this.users = response.data;
-          console.log(response.data);
-        })
+
+    async createUser() {
+      await UserDataService.create(this.editedItem).then(() => this.listUser())
         .catch((e) => {
-          console.log(e);
-        });
+          console.log(e)
+        })
     },
-mounted() {
-    this.listUsers();
+
+    async atualizationUser() {
+      await UserDataService.update(this.editedIndex, this.editedItem).then(() => this.listUser())
+        .catch((e) => {
+          console.log(e)
+        })
+    },
+
+    async deleteUser() {
+      await UserDataService.delete(this.editedIndex).then(() => this.listUser())
+        .catch((e) => {
+          console.log(e)
+        })
+    }
+  },
+
+  mounted() {
+    this.listUser();
   }
 })
 </script>

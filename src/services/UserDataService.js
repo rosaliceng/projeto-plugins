@@ -1,26 +1,26 @@
 
 import http from "./config.js";
 
-class UserDataService{
-    getAll(){
-        return http.get("/user");
+class UserDataService {
+    getAll() {
+        return http.get("/User");
     }
 
 
-get(id) {
-    return http.get(`/user/${id}`);
-}
+    get(id) {
+        return http.get(`/User/${id}`);
+    }
 
-create(data) {
-    return http.post("/user",data);
-}
+    create(data) {
+        return http.post("/User", data);
+    }
 
-update(id,data) {
-    return http.put(`/user/${id}`,data);
-}
+    update(id, data) {
+        return http.put(`/User/${id}`, data);
+    }
 
-delete(id){
-    return http.delete(`/user/${id}`);
+    delete(id) {
+        return http.delete(`/User/${id}`);
     }
 }
 
