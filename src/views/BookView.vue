@@ -8,13 +8,13 @@
           <v-row>
             <v-col>
               <v-sheet rounded="xl">
-                <v-data-table class="rounded-xl elevation-7" :headers="headers" :items="books">
+                <v-data-table class="rounded-xl elevation-7" :headers="headers" :search="search" :items="books">
                   <template v-slot:top>
                     <v-toolbar class="rounded-xl rounded-b-0" flat>
                       <v-toolbar-title>Livros</v-toolbar-title>
                       <v-divider class="mx-4" inset vertical></v-divider>
 
-                      <v-dialog v-model="dialog" max-width="500px">
+                      <v-dialog persistent v-model="dialog" max-width="500px">
                         <template v-slot:activator="{ on, attrs }">
                           <v-btn rounded color="black" dark v-bind="attrs" v-on="on">
                             Novo
@@ -30,21 +30,41 @@
 
                           <v-card-text>
                             <v-container>
-                              <v-col>
-                                <v-text-field v-model="editedItem.name" label="Nome"></v-text-field>
-                              </v-col>
-                              <v-col>
-                                <v-text-field v-model="editedItem.author" label="Autor"></v-text-field>
-                              </v-col>
-                              <v-col>
-                                <v-text-field v-model="editedItem.publisher" label="Editora"></v-text-field>
-                              </v-col>
-                              <v-col>
-                                <v-text-field v-model="editedItem.quantity" label="Quantidade"></v-text-field>
-                              </v-col>
-                              <v-col>
-                                <v-text-field v-model="editedItem.launch" label="Lançamento"></v-text-field>
-                              </v-col>
+                              
+                                <v-text-field v-model="editedItem.name" :rules="[rules.required, rules.max, rules.min]"
+                                  :counter="80" label="Nome">
+                                </v-text-field>
+                              
+                              
+                                <v-text-field v-model="editedItem.author"
+                                  :rules="[rules.required, rules.max, rules.min]" :counter="80" label="Autor">
+                                </v-text-field>
+                              
+                              
+                                <v-select v-model="editedItem.publishers" :items="publishers"
+                                  item-text="name" item-value="id" :rules="[rules.required]" label="Editora">
+                                </v-select>
+                              
+                              
+                                <v-text-field v-model="editedItem.quantity" type="number"
+                                  :rules="[rules.required, rules.minNumber]" label="Quantidade">
+                                </v-text-field>
+                              
+                              <v-menu ref="menu" v-model="menu" :close-on-content-click="false"
+                                :return-value.sync="launch" transition="scale-transition" offset-y min-width="auto">
+                                <template v-slot:activator="{ on, attrs }">
+                                  <v-text-field v-model="editedItem.launch" readonly v-bind="attrs" v-on="on"
+                                    :rules="[(v) => !!v || 'Lançamento é obrigatório']" append-icon="mdi-calendar"
+                                    label="Lançamento">
+                                  </v-text-field>
+                                </template>
+                                <v-date-picker v-model="launch" no-title scrollable :max="nowDate">
+
+                                  <v-btn text color="red" @click="menu = false"> Cancel </v-btn>
+
+                                  <v-btn text color="blue" @click="$refs.menu.save(launch)"> OK </v-btn>
+                                </v-date-picker>
+                              </v-menu>
                             </v-container>
                           </v-card-text>
 
@@ -77,11 +97,14 @@
                       </v-dialog>
                     </v-toolbar>
                   </template>
+                  <template v-slot:[`item.launch`]="{ item }">
+                  {{ item.launch | FormatDate }}
+                 </template>
                   <template v-slot:[`item.quantity`]="{ item }">
-                        <v-chip class="elevation-3" :color="getColor(item.quantity)" dark>
-                          {{ item.quantity }}
-                        </v-chip>
-                      </template>
+                    <v-chip class="elevation-3" :color="getColor(item.quantity)" dark>
+                      {{ item.quantity }}
+                    </v-chip>
+                  </template>
                   <template v-slot:[`item.actions`]="{ item }">
 
                     <v-icon size="20" class="mr-5" color="blue" @click="editItem(item)">
@@ -103,6 +126,7 @@
 </template>
 <script>
 import BookDataService from "../services/BookDataService";
+import PublisherDataService from "../services/PublisherDataService";
 
 
 export default ({
@@ -125,7 +149,7 @@ export default ({
     ],
     books: [],
     publishers: [],
-    search:'',
+    search: '',
     editedIndex: -1,
     editedItem: {
       name: '',
@@ -142,9 +166,17 @@ export default ({
       publisher: '',
       launch: '',
       quantity: '',
+    }, rules: {
+      required: (value) => !!value || 'Este campo é obrigatório.',
+      max: (value) => value.length <= 80 || 'Máximo de 80 caracteres.',
+      maxAutor: (value) => value.length <= 80 || 'Máximo de 80 caracteres.',
+      min: (value) => value.length >= 3 || 'Mínimo de 3 caracteres.',
+      minNumber: (value) => value >= 1 || 'No mínimo 1 é necessário.'
     },
   }),
 
+  
+  
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? 'Novo livro' : 'Editar livro'
@@ -170,8 +202,6 @@ export default ({
         {
           name: '',
           city: '',
-          address: '',
-          email: '',
 
         },
       ]
@@ -191,21 +221,32 @@ export default ({
           console.log(e);
         });
     },
+    
+    async listPublisher() {
+      await PublisherDataService.getAll()
+        .then((response) => {
+          this.publishers = response.data;
+          console.log(response.data);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
 
     editItem(item) {
-      this.editedIndex = this.book.indexOf(item)
+      this.editedIndex = item.id
       this.editedItem = Object.assign({}, item)
       this.dialog = true
     },
 
     deleteItem(item) {
-      this.editedIndex = this.book.indexOf(item)
+      this.editedIndex = item.id
       this.editedItem = Object.assign({}, item)
       this.dialogDelete = true
     },
 
     deleteItemConfirm() {
-      this.book.splice(this.editedIndex, 1)
+      this.deleteBook()
       this.closeDelete()
     },
 
@@ -258,6 +299,7 @@ export default ({
 
   mounted() {
     this.listBook();
+    this.listPublisher();
   }
 })
 </script>

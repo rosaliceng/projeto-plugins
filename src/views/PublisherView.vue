@@ -8,12 +8,12 @@
           <v-row>
             <v-col>
               <v-sheet rounded="xl">
-                <v-data-table class="rounded-xl elevation-7" :headers="headers" :items="publishers">
+                <v-data-table class="rounded-xl elevation-7" :headers="headers" :search="search" :items="publishers">
                   <template v-slot:top>
                     <v-toolbar class="rounded-xl rounded-b-0" flat>
                       <v-toolbar-title>Editoras</v-toolbar-title>
                       <v-divider class="mx-4" inset vertical></v-divider>
-                      <v-dialog v-model="dialog" max-width="500px">
+                      <v-dialog persistent v-model="dialog" max-width="500px">
                         <template v-slot:activator="{ on, attrs }">
                           <v-btn rounded color="black" dark v-bind="attrs" v-on="on">
                             Nova
@@ -30,10 +30,20 @@
                           <v-card-text>
                             <v-container>
                               <v-col>
-                                <v-text-field v-model="editedItem.name" label="Nome"></v-text-field>
+                                <v-text-field
+                                 v-model="editedItem.name"
+                                 :rules="[rules.required, rules.maxEditora, rules.min]"
+                                 :counter="80" 
+                                 label="Nome">
+                                </v-text-field>
                               </v-col>
                               <v-col>
-                                <v-text-field v-model="editedItem.city" label="Cidade"></v-text-field>
+                                <v-text-field 
+                                v-model="editedItem.city" 
+                                :rules="[rules.required, rules.max, rules.min]"
+                                :counter="80"
+                                label="Cidade">
+                              </v-text-field>
                               </v-col>
                             </v-container>
                           </v-card-text>
@@ -109,6 +119,12 @@ export default ({
     
     publishers: [],
     search: '',
+    rules: {
+                required: (value) => !!value || 'Este campo é obrigatório.',
+                max: (value) => value.length <= 80 || 'Máximo de 80 caracteres.',
+                maxEditora: (value) => value.length <= 80 || 'Máximo de 80 caracteres.',
+                min: (value) => value.length >= 3 || 'Mínimo de 3 caracteres.'
+            },
     editedIndex: -1,
     editedItem: {
       name: '',
