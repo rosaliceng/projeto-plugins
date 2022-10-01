@@ -34,33 +34,22 @@
                           <v-card-text>
                             <v-container>
                               <v-col>
-                                <v-text-field
-                                 v-model="editedItem.name" 
-                                 :rules="[rules.required, rules.max, rules.min]"
-                                 :counter="80"
-                                 label="Nome">
+                                <v-text-field v-model="editedItem.name" :rules="[rules.required, rules.max, rules.min]"
+                                  :counter="80" label="Nome">
                                 </v-text-field>
                               </v-col>
                               <v-col>
-                                <v-text-field
-                                 v-model="editedItem.city"
-                                 :rules="[rules.required, rules.max, rules.min]"
-                                 :counter="80" 
-                                 label="Cidade">
+                                <v-text-field v-model="editedItem.city" :rules="[rules.required, rules.max, rules.min]"
+                                  :counter="80" label="Cidade">
                                 </v-text-field>
                               </v-col>
                               <v-col>
-                                <v-text-field
-                                 v-model="editedItem.address"
-                                 :rules="[rules.required, rules.max, rules.min]"
-                                 :counter="80" 
-                                 label="Endereço">
+                                <v-text-field v-model="editedItem.address"
+                                  :rules="[rules.required, rules.max, rules.min]" :counter="80" label="Endereço">
                                 </v-text-field>
                               </v-col>
                               <v-col>
-                                <v-text-field
-                                 v-model="editedItem.email" 
-                                 label="Email">
+                                <v-text-field v-model="editedItem.email" label="Email">
                                 </v-text-field>
                               </v-col>
                             </v-container>
@@ -140,23 +129,23 @@ export default ({
     users: [],
     search: '',
     rules: {
-                required: (value) => !!value || 'Este campo é obrigatório.',
-                max: (value) => value.length <= 80 || 'Máximo de 80 caracteres.',
-                min: (value) => value.length >= 3 || 'Mínimo de 3 caracteres.',
-                
-            },
+      required: (value) => !!value || 'Este campo é obrigatório.',
+      max: (value) => value.length <= 80 || 'Máximo de 80 caracteres.',
+      min: (value) => value.length >= 3 || 'Mínimo de 3 caracteres.',
+
+    },
     editedIndex: -1,
     editedItem: {
       name: '',
       city: '',
-      addres: '',
+      address: '',
       email: '',
 
     },
     defaultItem: {
       name: '',
       city: '',
-      addres: '',
+      address: '',
       email: '',
 
     },

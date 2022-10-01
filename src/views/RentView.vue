@@ -29,44 +29,46 @@
 
                           <v-card-text>
                             <v-container>
-                                <v-select v-model="editedItem.users" :items=users item-text="name" item-value="id" label="Nome"></v-select>
-                              
-                                <v-select v-model="editedItem.books" :items=books item-text="name" item-value="id" label="Livro">
-                                </v-select>
-                              
+                              <v-select v-model="editedItem.userId" :items=users item-text="name" item-value="id"
+                                label="Nome"></v-select>
+
+                              <v-select v-model="editedItem.bookId" :items=books item-text="name" item-value="id"
+                                label="Livro"></v-select>
+
                               <v-menu v-if="!edit" ref="menu" v-model="menu" :close-on-content-click="false"
-                                :return-value.sync="RentDate" transition="scale-transition" offset-y min-width="auto">
+                                :return-value.sync="editedItem.rentDate" transition="scale-transition" offset-y
+                                min-width="auto">
                                 <template v-slot:activator="{ on, attrs }">
-                                  <v-text-field v-model="editedItem.RentDate" append-icon="mdi-calendar" readonly
+                                  <v-text-field v-model="editedItem.rentDate" append-icon="mdi-calendar" readonly
                                     v-bind="attrs" v-on="on" :rules="[(v) => !!v || 'Data é obrigatório']"
                                     label="Data do aluguel">
                                   </v-text-field>
                                 </template>
-                                <v-date-picker v-model="rentdate" no-title scrollable>
+                                <v-date-picker v-model="editedItem.rentDate" no-title scrollable :max="nowDate" locale="pt-br">
                                   <v-spacer></v-spacer>
 
-                                  <v-btn text color="primary" @click="menu = false"> Cancel </v-btn>
+                                  <v-btn text color="primary" @click="menu = false"> Cancelar </v-btn>
 
-                                  <v-btn text color="primary" @click="$refs.menu.save(rentdate)">
+                                  <v-btn text color="primary" @click="$refs.menu.save(editedItem.rentDate)">
                                     OK
                                   </v-btn>
                                 </v-date-picker>
                               </v-menu>
                               <v-menu v-if="!edit" ref="menu2" v-model="menu2" :close-on-content-click="false"
-                                :return-value.sync="ForecastDate" transition="scale-transition" offset-y
+                                :return-value.sync="editedItem.forecastDate" transition="scale-transition" offset-y
                                 min-width="auto">
                                 <template v-slot:activator="{ on, attrs }">
-                                  <v-text-field v-model="editedItem.ForecastDate" append-icon="mdi-calendar" readonly
+                                  <v-text-field v-model="editedItem.forecastDate" append-icon="mdi-calendar" readonly
                                     v-bind="attrs" v-on="on" :rules="[(v) => !!v || 'Previsão é obrigatório']"
                                     label="Previsão de devolução">
                                   </v-text-field>
                                 </template>
-                                <v-date-picker v-model="rentdate" no-title scrollable>
+                                <v-date-picker v-model="editedItem.forecastDate" no-title scrollable :max="nowDate" locale="pt-br">
                                   <v-spacer></v-spacer>
 
-                                  <v-btn text color="primary" @click="menu2 = false"> Cancel </v-btn>
+                                  <v-btn text color="primary" @click="menu2 = false"> Cancelar </v-btn>
 
-                                  <v-btn text color="primary" @click="$refs.menu2.save(rentdate)">
+                                  <v-btn text color="primary" @click="$refs.menu2.save(editedItem.forecastDate)">
                                     OK
                                   </v-btn>
                                 </v-date-picker>
@@ -78,10 +80,10 @@
                           <v-card-actions>
                             <v-spacer></v-spacer>
                             <v-btn rounded color="primary" text @click="close">
-                              Cancel
+                              Cancelar
                             </v-btn>
                             <v-btn color="blue darken-1" text @click="save">
-                              Save
+                              Salvar
                             </v-btn>
                           </v-card-actions>
                         </v-card>
@@ -129,12 +131,16 @@
 import RentDataService from "../services/RentDataService"
 import UserDataService from "../services/UserDataService"
 import BookDataService from "../services/BookDataService"
+import moment from "moment";
 
 export default ({
 
   data: () => ({
     dialog: false,
     dialogDelete: false,
+    date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().substr(0, 10),
+    nowDate: new Date().toISOString().slice(0, 10),
+    menu: false,
     menu2: false,
 
     headers: [
@@ -154,22 +160,23 @@ export default ({
     rents: [],
     users: [],
     books: [],
+    dateFormataded: [],
     search: '',
     editedIndex: -1,
     editedItem: {
       userId: '',
       bookId: '',
-      RentDate: '',
-      ForecastDate: '',
-      DevolutionDate: '',
+      rentDate: '',
+      rorecastDate: '',
+      devolutionDate: '',
 
     },
     defaultItem: {
       userId: '',
       bookId: '',
-      rentdate: '',
-      forecastdate: '',
-      devolutiondate: '',
+      rentDate: '',
+      forecastDate: '',
+      devolutionDate: '',
     },
   }),
 
@@ -198,9 +205,9 @@ export default ({
         {
           book: '',
           name: '',
-          rentdate: '',
-          forecastdate: '',
-          devolutiondate: '',
+          rentDate: '',
+          forecastDate: '',
+          devolutionDate: '',
 
         },
       ]
@@ -209,7 +216,10 @@ export default ({
       await RentDataService.getAll()
         .then((response) => {
           this.rents = response.data;
-          console.log(response.data);
+          this.rents.forEach(r => {
+            this.dateFormataded = moment(r.rentDate).format('YYYY-MM-DD')
+            return (r.rentDate = this.dateFormataded)
+          });
         })
         .catch((e) => {
           console.log(e);
@@ -238,19 +248,19 @@ export default ({
     },
 
     editItem(item) {
-      this.editedIndex = this.rent.indexOf(item)
-      this.editedItem = Object.assign({}, item)
+      this.editedIndex = item.id
+      this.editedItem = { ...item }
       this.dialog = true
     },
 
     deleteItem(item) {
-      this.editedIndex = this.rent.indexOf(item)
+      this.editedIndex = item.id
       this.editedItem = Object.assign({}, item)
       this.dialogDelete = true
     },
 
     deleteItemConfirm() {
-      this.rent.splice(this.editedIndex, 1)
+      this.deleteRent()
       this.closeDelete()
     },
 
@@ -272,9 +282,9 @@ export default ({
 
     save(data) {
       if (this.editedIndex > -1) {
-        Object.assign(this.rent[this.editedIndex], this.editedItem)
+        this.atualizationRent()
       } else {
-        this.rent.push(this.editedItem)
+        this.createRent()
       }
       this.close()
     },
