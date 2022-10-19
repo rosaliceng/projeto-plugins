@@ -3,7 +3,7 @@
   <div id="app">
 
     <v-app id="inspire">
-      <v-main class="pink accent-1">
+      <v-main class="pink accent-2">
         <v-container>
           <v-row>
             <v-col>
@@ -12,7 +12,7 @@
                   :items-per-page="5" :footer-props="{
                     itemsPerPageOptions: [5, 10, 25, 50],
                     itemsPerPageText: 'Linhas por página',
-                  }" :loading="loading" loading-text="Carregando dados... Aguarde!"
+                  }"
                   no-results-text="Nenhum livro encontrado">
                   <template v-slot:top>
                     <v-toolbar class="rounded-xl rounded-b-0" flat>
@@ -21,7 +21,13 @@
 
                       <v-dialog persistent v-model="dialog" max-width="500px">
                         <template v-slot:activator="{ on, attrs }">
-                          <v-btn rounded color="black" dark v-bind="attrs" v-on="on">
+                          <v-btn 
+                          rounded
+                          color="black" 
+                          dark
+                          v-bind="attrs" 
+                          v-on="on" 
+                          >     
                             Novo
                             <v-icon right>
                               mdi-plus
@@ -29,6 +35,7 @@
                           </v-btn>
                         </template>
                         <v-card>
+                          <v-form lazy-validation  ref="form" >
                           <v-card-title>
                             <span class="text-h5">{{ formTitle }}</span>
                           </v-card-title>
@@ -75,17 +82,18 @@
 
                           <v-card-actions>
                             <v-spacer></v-spacer>
-                            <v-btn rounded color="primary" text @click="close">
-                              Cancel
+                            <v-btn rounded color="red" text @click="close">
+                              Cancelar
                             </v-btn>
                             <v-btn color="blue darken-1" text @click="save">
-                              Save
+                              Salvar
                             </v-btn>
                           </v-card-actions>
+                          </v-form>
                         </v-card>
                       </v-dialog>
                       <v-spacer></v-spacer>
-                      <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details>
+                      <v-text-field v-model="search" append-icon="mdi-magnify" label="Pesquisar" color="black" single-line hide-details>
                       </v-text-field>
                       <v-dialog v-model="dialogDelete" max-width="500px">
                         <v-card>
@@ -102,6 +110,11 @@
                       </v-dialog>
                     </v-toolbar>
                   </template>
+
+                   <!-- <template v-slot:[`item.launch`]="{ item }">
+                  {{ item.launch | FormatDate }}
+                 </template>  -->
+
                   <template v-slot:[`item.quantity`]="{ item }">
                     <v-chip class="elevation-3" :color="getColor(item.quantity)" dark>
                       {{ item.quantity }}
@@ -139,8 +152,8 @@ export default ({
     dialogDelete: false,
     date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().substr(0, 10),
     menu: false,
+    search: '',
     nowDate: new Date().toISOString().slice(0, 10),
-    loading: (true, '#EC407A'),
     headers: [
       {
         text: 'Id',
@@ -157,7 +170,7 @@ export default ({
     books: [],
     publishers: [],
     dateFormated: [],
-    search: '',
+    
     editedIndex: -1,
     editedItem: {
       name: '',
@@ -180,10 +193,9 @@ export default ({
       max: (value) => value.length <= 80 || 'Máximo de 80 caracteres.',
       maxAutor: (value) => value.length <= 80 || 'Máximo de 80 caracteres.',
       min: (value) => value.length >= 3 || 'Mínimo de 3 caracteres.',
-      minNumber: (value) => value >= 1 || 'No mínimo 1 é necessário.'
+      minNumber: (value) => value >= 0 || 'No mínimo 1 é necessário.'
     },
   }),
-
 
 
   computed: {
@@ -199,6 +211,7 @@ export default ({
     dialogDelete(val) {
       val || this.closeDelete()
     },
+    
   },
 
   created() {
@@ -224,11 +237,10 @@ export default ({
       await BookDataService.getAll()
         .then((response) => {
           this.books = response.data;
-          this.books.forEach(b => {
-            this.dateFormated = moment(b.launch).format('YYYY-MM-DD')
-
-            return (b.launch = this.dateFormated)
-          });
+          this.books.forEach(item => {
+            item.launch = this.listDate(item.launch)
+          })
+        
           this.loading = false  
         
         })
@@ -246,10 +258,19 @@ export default ({
         });
     },
 
+    listDate(date) {
+      return moment(date).format('DD/MM/YYYY');
+    },
+  
+    editDate(date) {
+      const [dd, mm, yyyy] = date.split('/');
+      return `${yyyy}-${mm}-${dd}`    
+    },
+
     editItem(item) {
       this.editedIndex = item.id
-      // this.editedItem = Object.assign({}, item)
       this.editedItem = { ...item }
+      this.editedItem.launch = this.editDate(this.editedItem.launch)
       this.dialog = true
     },
 
@@ -270,6 +291,7 @@ export default ({
         this.editedItem = Object.assign({}, this.defaultItem)
         this.editedIndex = -1
       })
+      this.$refs.form.resetValidation()
     },
 
     closeDelete() {
@@ -281,17 +303,20 @@ export default ({
     },
 
     save(data) {
+      if (this.$refs.form.validate()) {
       if (this.editedIndex > -1) {
         this.atualizationBook()
       } else {
         this.createBook()
       }
       this.close()
+      }
     },
 
     async createBook() {
-      await BookDataService.create(this.editedItem).then(() => this.listBook())
+      await BookDataService.create(this.editedItem).then(() => this.listBook()).then(() => this.showAlertSuccessPost()).then(() => this.close())
         .catch((e) => {
+          this.showAlertErrorPost()
           console.log(e)
         })
     },
@@ -304,11 +329,29 @@ export default ({
     },
 
     async deleteBook() {
-      await BookDataService.delete(this.editedIndex).then(() => this.listBook())
+      await BookDataService.delete(this.editedIndex).then(() => this.listBook()).then(() => this.showAlertSuccessDelete())
         .catch((e) => {
+          this.showAlertError2()
           console.log(e)
         })
-    }
+      
+      },
+      showAlertSuccessPost() {
+      this.$swal("", "Livro cadastrado com sucesso!", "success");
+    },
+    
+    showAlertSuccessDelete() {
+      this.$swal("", "Livro deletado com sucesso!", "success");
+    },
+    
+    showAlertErrorPost() {
+      this.$swal("Atenção!", "Verique os dados inseridos nos campos!", "error");
+    },
+
+    showAlertError2() {
+      this.$swal("Atenção!", "Esse livro está alugado!", "error");
+    },
+
   },
 
   mounted() {

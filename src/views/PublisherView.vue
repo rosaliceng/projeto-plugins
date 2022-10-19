@@ -3,12 +3,17 @@
   <div id="app">
 
     <v-app id="inspire">
-      <v-main class="pink accent-1">
+      <v-main class="pink accent-2">
         <v-container>
           <v-row>
             <v-col>
               <v-sheet rounded="xl">
-                <v-data-table class="rounded-xl elevation-7" :headers="headers" :search="search" :items="publishers">
+                <v-data-table class="rounded-xl elevation-7" :headers="headers" :search="search" :items="publishers"
+                :items-per-page="5" :footer-props="{
+                    itemsPerPageOptions: [5, 10, 25, 50],
+                    itemsPerPageText: 'Linhas por página',
+                  }" 
+                  no-results-text="Nenhuma editora encontrada">
                   <template v-slot:top>
                     <v-toolbar class="rounded-xl rounded-b-0" flat>
                       <v-toolbar-title>Editoras</v-toolbar-title>
@@ -23,6 +28,7 @@
                           </v-btn>
                         </template>
                         <v-card>
+                          <v-form lazy-validation  ref="form" >
                           <v-card-title>
                             <span class="text-h5">{{ formTitle }}</span>
                           </v-card-title>
@@ -50,17 +56,18 @@
 
                           <v-card-actions>
                             <v-spacer></v-spacer>
-                            <v-btn rounded color="primary" text @click="close">
-                              Cancel
+                            <v-btn rounded color="red" text @click="close">
+                              Cancelar
                             </v-btn>
                             <v-btn color="blue darken-1" text @click="save">
-                              Save
+                              Salvar
                             </v-btn>
                           </v-card-actions>
+                          </v-form>
                         </v-card>
                       </v-dialog>
                       <v-spacer></v-spacer>
-                      <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details>
+                      <v-text-field v-model="search" append-icon="mdi-magnify" label="Pesquisar" color="blakc" single-line hide-details>
                       </v-text-field>
                       <v-dialog v-model="dialogDelete" max-width="500px">
                         <v-card>
@@ -71,6 +78,7 @@
                             <v-btn color="blue darken-1" text @click="deleteItemConfirm">Sim,quero</v-btn>
                             <v-spacer></v-spacer>
                           </v-card-actions>
+                          
                         </v-card>
                       </v-dialog>
                     </v-toolbar>
@@ -114,7 +122,7 @@ export default ({
       },
       { text: 'Nome', value: 'name' },
       { text: 'Cidade', value: 'city' },
-      { text: 'Actions', value: 'actions', sortable: false },
+      { text: 'Ações', value: 'actions', sortable: false },
     ],
     
     publishers: [],
@@ -153,6 +161,7 @@ export default ({
     dialogDelete(val) {
       val || this.closeDelete()
     },
+    
   },
 
   created() {
@@ -185,6 +194,13 @@ export default ({
       this.editedItem = Object.assign({}, item)
       this.dialog = true
     },
+    editoraLimpar() {
+            this.publisher = {
+                publisherId: '',
+                nome: '',
+                cidade: ''
+            };
+        },
 
     deleteItem(item) {
       this.editedIndex = item.id
@@ -203,6 +219,7 @@ export default ({
         this.editedItem = Object.assign({}, this.defaultItem)
         this.editedIndex = -1
       })
+      this.$refs.form.resetValidation()
     },
 
     closeDelete() {
@@ -214,35 +231,59 @@ export default ({
     },
 
     save() {
+      if (this.$refs.form.validate()) {
       if (this.editedIndex > -1) {
         this.atualizationPublisher()
       } else {
         this.createPublisher()
       }
       this.close()
+    }
     },
 
-    async createUser(){
-    await PublisherDataService.create(this.editedItem).then(() => this.listPublisher())
+    async createPublisher(){
+    await PublisherDataService.create(this.editedItem).then(() => this.listPublisher()).then(() => this.showAlertSuccessPost()).then(() => this.close())
     .catch((e) => {
+      this.showAlertErrorPost()
       console.log(e)
     })
   },
 
   async atualizationPublisher(){
-    await PublisherDataService.update(this.editedIndex, this.editedItem).then(() => this.listPublisher())
+    await PublisherDataService.update(this.editedIndex, this.editedItem).then(() => this.listPublisher()).then(() => this.showAlertSuccessUpdate()).then(() => this.close())
     .catch((e) => {
+      this.showAlertErrorUpdate()
       console.log(e)
     })
   },
 
   async deletePublisher(){
-    await PublisherDataService.delete(this.editedIndex).then(() => this.listPublisher())
+    await PublisherDataService.delete(this.editedIndex).then(() => this.listPublisher()).then(() => this.showAlertSuccessDelete()).then(() => this.close())
     .catch((e) => {
+      this.showAlertErrorDelete()
       console.log(e)
     })
-  }
   },
+
+  showAlertSuccessPost() {
+      this.$swal("", "Editora cadastrada com sucesso!", "success");
+    },
+    showAlertSuccessUpdate() {
+      this.$swal("", "Editora atualizada com sucesso!", "success");
+    },
+    showAlertSuccessDelete() {
+      this.$swal("", "Editora deletada com sucesso!", "success");
+    },
+    showAlertErrorPost() {
+      this.$swal("Ocorreu um erro", "Já existe uma editora com esse nome!", "error");
+    },
+    showAlertErrorDelete() {
+      this.$swal("Ocorreu um erro", "Essa editora já possui registros!", "error");
+    },
+    showAlertErrorUpdate() {
+      this.$swal("Ocorreu um erro", "Já existe uma editora com esse nome!", "error");
+    },
+   },
  
 mounted() {
     this.listPublisher();

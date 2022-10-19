@@ -4,7 +4,7 @@ class RentDataService {
     getAll() {
         return http.get("/Rent");
     }
-
+ 
 
     get(id) {
         return http.get(`/Rent/${id}`);
@@ -14,8 +14,8 @@ class RentDataService {
         return http.post("/Rent", data);
     }
 
-    update(id, data) {
-        return http.put(`/Rent/${id}`, data);
+    update(rent) {
+        return http.put('rent/' + rent.id, rent);
     }
 
     delete(id) {

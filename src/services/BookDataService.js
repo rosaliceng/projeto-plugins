@@ -10,6 +10,14 @@ class BookDataService {
         return http.get(`/book/${id}`);
     }
 
+    getMaxRented() {
+        return http.get("/book/ByMaxRented");
+      }
+    
+    getAvailable() {
+        return http.get("/book/ByAvailable");
+    }
+
     create(data) {
         return http.post("/book", data);
     }
