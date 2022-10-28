@@ -5,24 +5,15 @@ import vuetify from './plugins/vuetify';
 import router from './router'
 import VueSweetAlert2 from 'vue-sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css'
-import ApexCharts from 'apexcharts'
-
-
-
-// const Toast = Swal.mixin({
-//   toast: true,
-//   position: 'top-end',
-//   showConfirmButton: false,
-//   timer: 3000,
-//   timerProgressBar: true,
-// });
-
-// window.Toast = Toast;
+import VueApexCharts from 'apexcharts'
 
 Vue.use(VueSweetAlert2);
 
 Vue.config.productionTip = false
  
+//  Vue.use(VueApexCharts)
+
+//   Vue.component('apexchart',VueApexCharts)
 new Vue({
   router,
   vuetify,

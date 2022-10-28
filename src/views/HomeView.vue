@@ -1,46 +1,50 @@
 <template>
     <v-app>
-     <v-main class="pink accent-2">
+        <v-main class="pink accent-2">
             <v-container>
-                <v-row> 
-                    <v-col cols="3">
+                <v-row>
+                    <v-col>
                         <CardUser></CardUser>
                     </v-col>
-                    <v-col cols="3">
+                    <v-col>
                         <CardPublisher></CardPublisher>
                     </v-col>
-                    <v-col cols="3">
+                    <v-col>
                         <CardBook></CardBook>
                     </v-col>
-                    <v-col cols="3">
+                    <v-col>
                         <CardRent></CardRent>
+                    </v-col> 
+                </v-row>
+                <v-row>
+                    <v-col cols="12" sm="6">
+                        <BarChart></BarChart>
                     </v-col>
-                    <v-col cols="6">
+                    <v-col cols="15" sm="6" >
                         <CardComponent></CardComponent>
                     </v-col>
-                    <v-col cols="6">
-                        <BooksList></BooksList>
-                    </v-col>
-                   
+                    
                 </v-row>
             </v-container>
-            </v-main>
-     </v-app>
+        </v-main>
+    </v-app>
 </template>
 
-<script> 
+<script>
 
 import CardComponent from '@/components/CardComponent.vue';
-import BooksList from '../components/BooksList.vue';
 import CardPublisher from '../components/CardPublisher.vue';
 import CardUser from '../components/CardUser.vue';
 import CardBook from '../components/CardBook.vue';
 import CardRent from '../components/CardRent.vue';
-  export default {
-    components: { CardComponent, BooksList, CardPublisher, CardUser, CardBook, CardBook, CardRent}
-    }
+import BarChart from "../components/BarChart.vue";
+
+export default {
+    components: { CardComponent, CardPublisher, CardUser, CardBook, CardBook, CardRent, BarChart }
+
+}
+
 </script>
 <style>
- 
 
 </style>

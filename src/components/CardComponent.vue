@@ -1,7 +1,7 @@
 <template>
     <v-card style="border: 4px solid white"  max-width="400" min-heigh="200" class="mx-auto" rounded="xl">
-        <v-img src=../assets/girlReadding2.jpg width="400" height="250" >
-        </v-img>
+        <!-- <v-img src=../assets/girlReadding2.jpg width="400" height="250" >
+        </v-img> -->
         <v-card-title class="headline black--text">Último livro alugado</v-card-title>
             <v-card-text>
                 <li>

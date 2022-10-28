@@ -131,14 +131,15 @@
                     </v-toolbar>
                   </template>
 
-                
-<!-- 
-                  <template v-slot:[`item.forecastDate`]="{ item }">
-                    {{ item.forecastDate | FormatDate }}
-                  </template>  -->
+                  <template v-slot:[`item.statusRents`]="{ item }">
+                  <v-chip class="elevation-3" :color="getColor(item)" dark>
+                    {{ item.statusRents }}
+                  </v-chip>
+                </template>
+
 
                   <template v-slot:[`item.actions`]="{ item }">
-                    <v-tooltip top color="red" v-if="item.devolutionDate">
+                    <v-tooltip top color="red" v-if="item.devolutionDate !== 'Sem data'">
                       <template v-slot:activator="{ on, attrs }">
                         <v-icon  size="20" color="red" v-bind="attrs" v-on="on" @click="deleteItem(item)">
                           mdi-delete
@@ -156,14 +157,6 @@
                       <span>Devolver</span>
                     </v-tooltip>
                   </template>
-
-                   <template v-slot:[`item.devolutionDate`]="{ item }">
-                    <span class="font-weight-bold red--text" v-if="item.devolutionDate > item.forecastDate">{{
-                    item.devolutionDate | FormatDate }} (Atrasado)</span>
-                    <span class="font-weight-bold green--text" v-else-if="item.devolutionDate <= item.forecastDate">{{
-                    item.devolutionDate | FormatDate }} (No prazo)</span>
-                    <span class="font-weight-bold black--text" v-else>(Pendente)</span>
-                  </template>   
 
                 </v-data-table>
               </v-sheet>
@@ -205,6 +198,7 @@ export default ({
       { text: 'Data do aluguel', value: 'rentDate' },
       { text: 'Previsão de devolução', value: 'forecastDate' },
       { text: 'Data de devolução', value: 'devolutionDate' },
+      { text: 'Status', value: 'statusRents', sortable: false },
       { text: 'Ações', value: 'actions', sortable: false },
     ],
     search: '',
@@ -277,9 +271,14 @@ export default ({
           this.rents.forEach((item) => {
              item.rentDate = this.listDate(item.rentDate);
              item.forecastDate = this.listDate(item.forecastDate)
-            
+              
+
+            if (item.devolutionDate == null) {
+            return item.devolutionDate = "Sem data"
+            }
+            item.devolutionDate = this.listDate(item.devolutionDate)
         });
-      
+        
       })
       },
 
@@ -313,7 +312,11 @@ export default ({
       return `${yyyy}-${mm}-${dd}`;
      },
     
-
+     getColor(item) {
+      if (item.statusRents === 'No prazo') return 'green'
+      else if (item.statusRents === 'Com atraso') return 'red'
+      else if (item.statusRents === 'Pendente') return 'orange'
+    },
     newItem(item) {
       this.editedIndex = item.id
       this.editedItem = Object.assign({}, item)
